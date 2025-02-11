@@ -1,3 +1,4 @@
+@ entrypoint into kernel
 #include "syscall.h"
 #include "traps.h"
 
