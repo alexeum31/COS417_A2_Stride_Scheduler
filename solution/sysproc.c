@@ -8,6 +8,7 @@
 #include "proc.h"
 #include "pstat.h"
 
+const int MIN_TICKET = 1;
 int
 sys_fork(void)
 {
@@ -96,6 +97,20 @@ int
 sys_settickets(int n) 
 {
   struct proc *p = myproc();
+  if (n < MIN_TICKET) {
+    p->tickets = DEFAULT_TICKETS;
+  } else if (n > MAX_TICKETS){
+    p->tickets = MAX_TICKETS;
+  } else {
+    p->tickets = n;
+  }
+
+  // keep floating points?
+  p->stride = STRIDE1 / MAX_TICKETS;
+
+  // should be equal to global pass
+  p->pass = 0;
+  p->rtime = 0;
 
   return 0;
 }
@@ -103,5 +118,6 @@ sys_settickets(int n)
 int 
 sys_getpinfo(struct pstat* p) 
 {
+
   return 0;
 }

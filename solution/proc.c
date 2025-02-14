@@ -11,11 +11,6 @@
 #include <limits.h>
 
 
-#define STRIDE1 (1<<10)
-#define MAX_TICKETS (1<<5)
-#define DEFAULT_TICKETS 8
-#define DEBUGLOG 0
-
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
