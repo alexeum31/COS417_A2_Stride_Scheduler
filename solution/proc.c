@@ -376,7 +376,7 @@ scheduler(void)
     release(&ptable.lock);
   }
 #endif
-// #ifdef STRIDE
+#ifdef STRIDE
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -428,7 +428,7 @@ scheduler(void)
 
   }
   release(&ptable.lock);
-// #endif
+#endif
 }
 
 // Enter scheduler.  Must hold only ptable.lock

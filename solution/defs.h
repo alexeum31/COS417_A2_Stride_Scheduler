@@ -122,6 +122,8 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 void            update_on_tick(void);
+int             settickets(int n);
+int             getpinfo(struct pstat*);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
