@@ -8,6 +8,8 @@
 #include "spinlock.h"
 #include "pstat.h"
 #include "stddef.h"
+#include <limits.h>
+
 
 #define STRIDE1 (1<<10)
 #define MAX_TICKETS (1<<5)
@@ -129,6 +131,9 @@ found:
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
 
+  // stride specific states
+  p->pass = 0;
+  // call syscalls?
   return p;
 }
 
@@ -371,9 +376,7 @@ scheduler(void)
     release(&ptable.lock);
   }
 #endif
-#ifdef STRIDE
-  // TODO: Stride scheduler implementation here
-  struct proc *p;
+// #ifdef STRIDE
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -383,27 +386,49 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    int min_pass = INT_MAX;
+    int min_rtime = INT_MAX;
+    int min_pid = INT_MAX;
+    struct proc *process_to_run;
+
+    for(struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
-
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
+      if (p->pass < min_pass) {
+        min_pass = p->pass;
+        process_to_run = p;
+      } else if (p->pass == min_pass && p->rtime < min_rtime) {
+        min_pass = p->pass;
+        min_rtime = p->rtime;
+        process_to_run = p;
+      } else if (p->pass == min_pass && p->rtime == min_rtime && p->pid < min_pid) {
+        min_pass = p->pass;
+        min_rtime = p->rtime;
+        min_pid = p->pid;
+        process_to_run = p;
+      }
     }
-    release(&ptable.lock);
+
+    // Switch to chosen process.  It is the process's job
+    // to release ptable.lock and then reacquire it
+    // before jumping back to us.
+    c->proc = process_to_run;
+    switchuvm(process_to_run);
+    process_to_run->state = RUNNING;
+
+    swtch(&(c->scheduler), process_to_run->context);
+    switchkvm();
+
+    c->proc->pass += c->proc->stride;
+
+    // Process is done running for now.
+    // It should have changed its p->state before coming back.
+    c->proc = 0;
+
   }
-#endif
+  release(&ptable.lock);
+// #endif
 }
 
 // Enter scheduler.  Must hold only ptable.lock
