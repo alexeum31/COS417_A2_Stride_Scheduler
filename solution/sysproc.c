@@ -93,13 +93,15 @@ sys_uptime(void)
 
 // TODO: new syscall frameworks here
 int 
-settickets(int n) 
+sys_settickets(int n) 
 {
+  struct proc *p = myproc();
+
   return 0;
 }
 
 int 
-getpinfo(struct pstat* p) 
+sys_getpinfo(struct pstat* p) 
 {
   return 0;
 }
