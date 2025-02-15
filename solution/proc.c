@@ -16,6 +16,9 @@
 #define DEBUGLOG 0
 
 const int MIN_TICKET = 1;
+static int global_tickets = 0;
+static int global_stride = 0;
+static int global_pass = 0;
 
 
 struct {
@@ -80,7 +83,14 @@ void
 update_on_tick() 
 {
   // TODO: place for any logic to update stride scheduler-specific states upon a tick
-  
+  global_tickets = 0;
+  for(struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (p->state == RUNNABLE || p->state == RUNNING) {
+      global_tickets += p->tickets;
+    }
+  }
+  global_stride = STRIDE1 / global_tickets;
+  global_pass += global_stride;
 }
 
 //PAGEBREAK: 32
@@ -631,8 +641,7 @@ settickets(int n)
   // keep floating points?
   p->stride = STRIDE1 / MAX_TICKETS;
 
-  // should be equal to global pass
-  p->pass = 0;
+  p->pass = global_pass;
   p->rtime = 0;
 
   return 0;
