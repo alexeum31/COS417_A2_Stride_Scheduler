@@ -630,6 +630,7 @@ int
 settickets(int n) 
 {
   struct proc *p = myproc();
+  acquire(&ptable.lock);
   if (n < MIN_TICKET) {
     p->tickets = DEFAULT_TICKETS;
   } else if (n > MAX_TICKETS){
@@ -643,6 +644,7 @@ settickets(int n)
 
   p->pass = global_pass;
   p->rtime = 0;
+  release(&ptable.lock);
 
   return 0;
 }
