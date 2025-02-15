@@ -3,6 +3,7 @@
         "memory": "c",
         "semaphore": "c",
         "stop_token": "c",
-        "spinlock.h": "c"
+        "spinlock.h": "c",
+        "pstat.h": "c"
     }
 }

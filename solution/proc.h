@@ -1,8 +1,3 @@
-#define STRIDE1 (1<<10)
-#define MAX_TICKETS (1<<5)
-#define DEFAULT_TICKETS 8
-#define DEBUGLOG 0
-
 // Per-CPU state
 struct cpu {
   uchar apicid;                // Local APIC ID

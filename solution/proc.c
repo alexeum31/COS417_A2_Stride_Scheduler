@@ -10,6 +10,13 @@
 #include "stddef.h"
 #include <limits.h>
 
+#define STRIDE1 (1<<10)
+#define MAX_TICKETS (1<<5)
+#define DEFAULT_TICKETS 8
+#define DEBUGLOG 0
+
+const int MIN_TICKET = 1;
+
 
 struct {
   struct spinlock lock;
@@ -371,7 +378,7 @@ scheduler(void)
     release(&ptable.lock);
   }
 #endif
-// #ifdef STRIDE
+#ifdef STRIDE
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -424,7 +431,7 @@ scheduler(void)
 
   }
   release(&ptable.lock);
-// #endif
+#endif
 }
 
 // Enter scheduler.  Must hold only ptable.lock
@@ -609,3 +616,42 @@ procdump(void)
 }
 
 // TODO: Implementation of syscall behaviors here
+int 
+settickets(int n) 
+{
+  struct proc *p = myproc();
+  if (n < MIN_TICKET) {
+    p->tickets = DEFAULT_TICKETS;
+  } else if (n > MAX_TICKETS){
+    p->tickets = MAX_TICKETS;
+  } else {
+    p->tickets = n;
+  }
+
+  // keep floating points?
+  p->stride = STRIDE1 / MAX_TICKETS;
+
+  // should be equal to global pass
+  p->pass = 0;
+  p->rtime = 0;
+
+  return 0;
+}
+
+int 
+getpinfo(struct pstat* p) 
+{
+  struct proc *current_process = ptable.proc;
+  for(size_t i = 0; i < NPROC; i++) {
+    p->pid[i] = current_process->pid;
+    p->inuse[i] = (current_process->state == UNUSED) ? 0 : 1;
+    p->tickets[i] = current_process->tickets;
+    p->stride[i] = current_process->stride;
+    p->pass[i] = current_process->pass;
+    p->rtime[i] = current_process->rtime;
+    
+
+    current_process++;
+  }
+  return 0;
+}
