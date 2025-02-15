@@ -371,7 +371,7 @@ scheduler(void)
     release(&ptable.lock);
   }
 #endif
-#ifdef STRIDE
+// #ifdef STRIDE
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -416,6 +416,7 @@ scheduler(void)
     switchkvm();
 
     c->proc->pass += c->proc->stride;
+    c->proc->rtime++;
 
     // Process is done running for now.
     // It should have changed its p->state before coming back.
@@ -423,7 +424,7 @@ scheduler(void)
 
   }
   release(&ptable.lock);
-#endif
+// #endif
 }
 
 // Enter scheduler.  Must hold only ptable.lock

@@ -2,6 +2,7 @@
     "files.associations": {
         "memory": "c",
         "semaphore": "c",
-        "stop_token": "c"
+        "stop_token": "c",
+        "spinlock.h": "c"
     }
 }
