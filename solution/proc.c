@@ -387,6 +387,7 @@ scheduler(void)
     }
     release(&ptable.lock);
   }
+
 #endif
 #ifdef STRIDE
   struct cpu *c = mycpu();
@@ -401,7 +402,7 @@ scheduler(void)
     int min_pass = INT_MAX;
     int min_rtime = INT_MAX;
     int min_pid = INT_MAX;
-    struct proc *process_to_run;
+    struct proc *process_to_run = NULL;
 
     for(struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
@@ -422,6 +423,11 @@ scheduler(void)
       }
     }
 
+    if (process_to_run == NULL) {
+      release(&ptable.lock);
+      continue;
+    }
+
     // Switch to chosen process.  It is the process's job
     // to release ptable.lock and then reacquire it
     // before jumping back to us.
@@ -438,9 +444,10 @@ scheduler(void)
     // Process is done running for now.
     // It should have changed its p->state before coming back.
     c->proc = 0;
+    release(&ptable.lock);
 
   }
-  release(&ptable.lock);
+  
 #endif
 }
 
@@ -630,7 +637,7 @@ int
 settickets(int n) 
 {
   struct proc *p = myproc();
-  acquire(&ptable.lock);
+  // acquire(&ptable.lock);
   if (n < MIN_TICKET) {
     p->tickets = DEFAULT_TICKETS;
   } else if (n > MAX_TICKETS){
@@ -644,7 +651,7 @@ settickets(int n)
 
   p->pass = global_pass;
   p->rtime = 0;
-  release(&ptable.lock);
+  // release(&ptable.lock);
 
   return 0;
 }
