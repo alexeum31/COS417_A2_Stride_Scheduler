@@ -95,16 +95,20 @@ sys_uptime(void)
 int 
 sys_settickets(void) 
 {
+  acquire(&tickslock);
   int n;
   argint(0, &n);
+  cprintf("getting tickets\n");
+  release(&tickslock);
   return settickets(n);
 }
 
 int 
 sys_getpinfo(void) 
 {
+  acquire(&tickslock);
   struct pstat* p;
   argptr(0, (void*)&p, sizeof(*p));
-  
+  release(&tickslock);
   return getpinfo(p);
 }

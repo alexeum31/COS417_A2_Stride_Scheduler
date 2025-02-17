@@ -253,6 +253,7 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+  np->pass = global_pass;
 
   release(&ptable.lock);
 
@@ -646,8 +647,9 @@ procdump(void)
 int 
 settickets(int n) 
 {
+  acquire(&ptable.lock);
   struct proc *p = myproc();
-  // acquire(&ptable.lock);
+  
   if (n < MIN_TICKET) {
     p->tickets = DEFAULT_TICKETS;
   } else if (n > MAX_TICKETS){
@@ -659,8 +661,9 @@ settickets(int n)
   p->stride = STRIDE1 / p->tickets;
   
   p->pass = global_pass;
+  cprintf("pass was set to global stride of: %d\n", p->pass);
   p->rtime = 0;
-  // release(&ptable.lock);
+  release(&ptable.lock);
 
   return 0;
 }
@@ -668,6 +671,7 @@ settickets(int n)
 int 
 getpinfo(struct pstat* p) 
 {
+  
   acquire(&ptable.lock);
   struct proc *current_process = ptable.proc;
   for(size_t i = 0; i < NPROC; i++) {
