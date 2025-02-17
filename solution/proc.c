@@ -442,8 +442,14 @@ scheduler(void)
     swtch(&(c->scheduler), process_to_run->context);
     switchkvm();
 
-    c->proc->pass += c->proc->stride;
-    c->proc->rtime++;
+    if (process_to_run->tickets < MIN_TICKET) {
+      process_to_run->tickets = DEFAULT_TICKETS;
+    } 
+
+    process_to_run->stride = STRIDE1 / process_to_run->tickets;
+    process_to_run->pass += process_to_run->stride;
+    process_to_run->rtime++;
+    // cprintf("stride is %d\n", c->proc->stride);
 
     // Process is done running for now.
     // It should have changed its p->state before coming back.
@@ -650,9 +656,8 @@ settickets(int n)
     p->tickets = n;
   }
 
-  // keep floating points?
-  p->stride = STRIDE1 / MAX_TICKETS;
-
+  p->stride = STRIDE1 / p->tickets;
+  
   p->pass = global_pass;
   p->rtime = 0;
   // release(&ptable.lock);
@@ -663,6 +668,7 @@ settickets(int n)
 int 
 getpinfo(struct pstat* p) 
 {
+  acquire(&ptable.lock);
   struct proc *current_process = ptable.proc;
   for(size_t i = 0; i < NPROC; i++) {
     p->pid[i] = current_process->pid;
@@ -671,9 +677,9 @@ getpinfo(struct pstat* p)
     p->stride[i] = current_process->stride;
     p->pass[i] = current_process->pass;
     p->rtime[i] = current_process->rtime;
-    
-
     current_process++;
+    // cprintf("pass getting updated to %d\n", p->pass[i]);
   }
+  release(&ptable.lock);
   return 0;
 }
