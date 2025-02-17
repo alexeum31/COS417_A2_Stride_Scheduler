@@ -667,7 +667,7 @@ getpinfo(struct pstat* p)
   for(size_t i = 0; i < NPROC; i++) {
     p->pid[i] = current_process->pid;
     p->inuse[i] = (current_process->state == UNUSED) ? 0 : 1;
-    p->tickets[i] = current_process->tickets;
+    p->tickets[i] = (DEFAULT_TICKETS > current_process->tickets) ? DEFAULT_TICKETS : current_process->tickets;
     p->stride[i] = current_process->stride;
     p->pass[i] = current_process->pass;
     p->rtime[i] = current_process->rtime;
