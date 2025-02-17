@@ -89,7 +89,11 @@ update_on_tick()
       global_tickets += p->tickets;
     }
   }
-  global_stride = STRIDE1 / global_tickets;
+  if (global_tickets == 0) {
+    global_stride = STRIDE1;
+  } else {
+    global_stride = STRIDE1 / global_tickets;
+  }
   global_pass += global_stride;
 }
 
