@@ -150,6 +150,7 @@ found:
   // stride specific states
   p->pass = global_pass;
   p->tickets = DEFAULT_TICKETS;
+  p->stride = STRIDE1 / p->tickets;
   return p;
 }
 
@@ -187,6 +188,8 @@ userinit(void)
   acquire(&ptable.lock);
 
   p->state = RUNNABLE;
+  p->pass = global_pass;
+
 
   release(&ptable.lock);
 }
@@ -253,6 +256,7 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+  np->pass = global_pass;
  
 
   release(&ptable.lock);
@@ -443,11 +447,7 @@ scheduler(void)
     swtch(&(c->scheduler), process_to_run->context);
     switchkvm();
 
-    if (process_to_run->tickets < MIN_TICKET) {
-      process_to_run->tickets = DEFAULT_TICKETS;
-    } 
 
-    process_to_run->stride = STRIDE1 / process_to_run->tickets;
     process_to_run->pass += process_to_run->stride;
     process_to_run->rtime++;
     // cprintf("stride is %d\n", c->proc->stride);
@@ -569,6 +569,7 @@ wakeup1(void *chan)
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if (p->state == SLEEPING && p->chan == chan) {
       p->state = RUNNABLE;
+      p->pass = global_pass;
     }
   }
 }
@@ -597,6 +598,7 @@ kill(int pid)
       // Wake process from sleep if necessary.
       if (p->state == SLEEPING) {
         p->state = RUNNABLE;
+        p->pass = global_pass;
       }
       release(&ptable.lock);
       return 0;
@@ -659,9 +661,7 @@ settickets(int n)
   }
 
   p->stride = STRIDE1 / p->tickets;
-  
   p->pass = global_pass;
-  cprintf("pass was set to global stride of: %d\n", p->pass);
   p->rtime = 0;
   release(&ptable.lock);
 
